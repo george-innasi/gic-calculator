@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GIC Calculator</title>
+<style>
+  :root{
+    --bg:#1c2027; --card:#15181c; --ink:#e7eaed; --heading:#ffffff; --muted:#99a2ab; --line:#2b3038;
+    --accent:#5b6b76; --accent-soft:#232a31;
+    --teal:#8EC9BB; --peach:#F8CA9D; --coral:#FB8E7E; --yellow:#F2CF59;
+    --pos:#48c98e; --pos-bg:#15291f; --pos-line:#2d4838;
+    --info-bg:#10212a; --info-line:#23414e;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 30px rgba(0,0,0,.45);
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--ink);min-height:100vh;
+    background:linear-gradient(165deg,#000 0%,#0d1014 55%,#000 100%);background-attachment:fixed;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.45;-webkit-font-smoothing:antialiased;padding:28px 18px 60px}
+  .wrap{max-width:960px;margin:0 auto}
+  h1{font-size:25px;margin:0 0 2px;letter-spacing:-.02em;color:var(--heading);font-weight:800}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 22px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--heading);margin:0 0 16px;font-weight:800}
+  .field{margin-bottom:15px}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:600}
+  input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:15px;color:var(--ink);background:var(--bg);outline:none}
+  input:focus,select:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--accent-soft)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .termrow{display:grid;grid-template-columns:1fr 1.1fr;gap:12px}
+  .note{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.45}
+  .infobox{background:var(--info-bg);border:1px solid var(--info-line);border-radius:10px;padding:10px 12px;font-size:12.5px;color:var(--ink)}
+  /* results */
+  .matline{display:flex;align-items:baseline;justify-content:space-between;gap:10px;background:var(--info-bg);border:1px solid var(--info-line);border-radius:12px;padding:10px 14px;margin-bottom:14px}
+  .matline .d{font-size:18px;font-weight:800;color:var(--teal)}
+  .matline .t{font-size:12px;color:var(--muted)}
+  .biglbl{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+  .big{font-size:34px;font-weight:800;letter-spacing:-.02em;color:var(--pos);margin:2px 0}
+  .statrow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  .stat{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:11px 13px}
+  .stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+  .stat .v{font-size:18px;font-weight:800;margin-top:3px;color:var(--ink)}
+  .summary{margin-top:14px;padding:13px 15px;background:var(--pos-bg);border:1px solid var(--pos-line);border-radius:12px;font-size:14px}
+  .summary b{color:var(--pos)}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+  th,td{text-align:right;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--muted);font-weight:700;text-transform:uppercase;font-size:10.5px;letter-spacing:.04em}
+  tbody tr:last-child td{font-weight:700}
+  .cap{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>GIC Calculator</h1>
+  <p class="sub">Show a customer exactly what a Guaranteed Investment Certificate will pay. Pick a term in days, months, or years from a start date, and the calculator confirms the precise maturity date and applies the right interest rules.</p>
+
+  <div class="grid">
+    <!-- INPUTS -->
+    <div class="card">
+      <h2>The GIC</h2>
+      <div class="field"><label>Investment amount ($)</label><input type="number" id="amt" value="10000" min="0" step="100"></div>
+      <div class="field"><label>Interest rate (% per year)</label><input type="number" id="rate" value="4.00" min="0" step="0.01"></div>
+      <div class="field"><label>Term</label>
+        <div class="termrow">
+          <input type="number" id="termN" value="90" min="1" step="1">
+          <select id="termUnit">
+            <option value="days" selected>Days</option>
+            <option value="months">Months</option>
+            <option value="years">Years</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Start date</label><input type="date" id="start"></div>
+      <div class="field" id="payWrap">
+        <label>Interest payment</label>
+        <select id="payMode">
+          <option value="compound_annual" selected>Compounded annually</option>
+          <option value="paid_annual">Paid out annually (simple)</option>
+          <option value="paid_monthly">Paid out monthly (simple)</option>
+        </select>
+      </div>
+      <div class="infobox" id="ruleNote"></div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="card">
+      <h2>What they'll get</h2>
+      <div class="matline">
+        <div><div class="t">Matures on</div><div class="d" id="matDate">—</div></div>
+        <div style="text-align:right"><div class="t">Exact term</div><div class="d" id="termDays">—</div></div>
+      </div>
+      <div class="biglbl" id="bigLbl">Total value at maturity</div>
+      <div class="big" id="total">—</div>
+      <div class="statrow">
+        <div class="stat"><div class="k">Interest earned</div><div class="v" id="interest">—</div></div>
+        <div class="stat"><div class="k" id="balLbl">Balance at maturity</div><div class="v" id="balance">—</div></div>
+        <div class="stat"><div class="k">Interest treatment</div><div class="v" id="method" style="font-size:13px">—</div></div>
+        <div class="stat"><div class="k">Effective annual yield</div><div class="v" id="apy">—</div></div>
+      </div>
+      <div class="summary" id="summary">—</div>
+    </div>
+  </div>
+
+  <!-- SCHEDULE -->
+  <div class="card" style="margin-top:18px">
+    <h2 id="schedTitle">Interest schedule</h2>
+    <div style="overflow-x:auto"><table id="tbl"></table></div>
+    <div class="cap" id="schedCap"></div>
+  </div>
+
+  <p class="note" style="margin-top:18px">Interest accrues on an actual-days ÷ 365 basis. Short-term GICs (terms of one year or less) earn simple interest paid in a single lump sum at maturity, with no compounding and no early access — standard for Canadian GICs. Long-term GICs (over one year) let you choose how interest is handled. Figures are estimates for illustration; exact posting dates, day-count and rounding may vary by institution. Not financial advice.</p>
+</div>
+
+<script>
+/* ---------- date helpers (UTC) ---------- */
+function addDays(d,n){var x=new Date(d); x.setUTCDate(x.getUTCDate()+n); return x;}
+function addMonths(d,n){var x=new Date(d); var day=x.getUTCDate(); x.setUTCDate(1); x.setUTCMonth(x.getUTCMonth()+n);
+  var dim=new Date(Date.UTC(x.getUTCFullYear(),x.getUTCMonth()+1,0)).getUTCDate(); x.setUTCDate(Math.min(day,dim)); return x;}
+function addYears(d,n){var x=new Date(d); x.setUTCFullYear(x.getUTCFullYear()+n); return x;}
+function diffDays(a,b){return Math.round((b-a)/86400000);}
+
+/* ---------- GIC engine ---------- */
+function gic(P, ratePct, start, maturity, mode){
+  var r=ratePct/100, rows=[], balance=P, totalInterest=0;
+  function pInt(base,days){return base*r*days/365;}
+  if(mode==='simple_maturity'){
+    var days=diffDays(start,maturity), intr=pInt(P,days);
+    totalInterest=intr; balance=P+intr;
+    rows.push({date:maturity,label:'Maturity',days:days,interest:intr,balance:balance});
+    return {totalInterest:totalInterest,maturityBalance:balance,totalValue:P+totalInterest,rows:rows,paidOut:false};
+  }
+  var bounds=[],k=1,b;
+  if(mode==='paid_monthly'){ while((b=addMonths(start,k))<maturity){bounds.push(b);k++;} }
+  else { while((b=addYears(start,k))<maturity){bounds.push(b);k++;} }
+  bounds.push(maturity);
+  var prev=start, cum=0;
+  for(var i=0;i<bounds.length;i++){
+    var cur=bounds[i], days=diffDays(prev,cur), last=(i===bounds.length-1);
+    if(mode==='compound_annual'){
+      var intr=pInt(balance,days); balance+=intr; totalInterest+=intr;
+      rows.push({date:cur,label:(last?'Maturity':'Year '+(i+1)),days:days,interest:intr,balance:balance});
+    } else {
+      var intr=pInt(P,days); totalInterest+=intr; cum+=intr;
+      rows.push({date:cur,label:((mode==='paid_monthly'?'Month ':'Year ')+(i+1))+(last?' · maturity':''),days:days,interest:intr,cum:cum,balance:P});
+    }
+    prev=cur;
+  }
+  return {totalInterest:totalInterest,maturityBalance:(mode==='compound_annual'?balance:P),totalValue:P+totalInterest,rows:rows,paidOut:(mode!=='compound_annual')};
+}
+
+/* ---------- helpers ---------- */
+function money(n){if(!isFinite(n))return "—";return "$"+n.toLocaleString("en-CA",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fdate(d){return d.toLocaleDateString("en-CA",{year:"numeric",month:"short",day:"numeric",timeZone:"UTC"});}
+function todayISO(){var t=new Date();return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0");}
+
+/* ---------- UI ---------- */
+document.getElementById("start").value=todayISO();
+["amt","rate","termN","termUnit","start","payMode"].forEach(function(id){
+  document.getElementById(id).addEventListener("input",render);
+  document.getElementById(id).addEventListener("change",render);
+});
+
+function render(){
+  var P=+document.getElementById("amt").value||0;
+  var rate=+document.getElementById("rate").value||0;
+  var n=Math.max(1,Math.round(+document.getElementById("termN").value||1));
+  var unit=document.getElementById("termUnit").value;
+  var startISO=document.getElementById("start").value||todayISO();
+  var start=new Date(startISO+"T00:00:00Z");
+  var maturity = unit==="days"?addDays(start,n) : unit==="months"?addMonths(start,n) : addYears(start,n);
+  var termDays=diffDays(start,maturity);
+  var shortTerm = termDays<=366;
+
+  // adapt interest-payment control
+  var payWrap=document.getElementById("payWrap");
+  var note=document.getElementById("ruleNote");
+  var mode;
+  if(shortTerm){
+    payWrap.style.display="none";
+    mode="simple_maturity";
+    note.innerHTML="<b>Short-term GIC (≤ 1 year).</b> Simple interest, paid in one lump sum at maturity — no compounding, no early access.";
+  } else {
+    payWrap.style.display="";
+    mode=document.getElementById("payMode").value;
+    note.innerHTML="<b>Long-term GIC (over 1 year).</b> Choose how interest is handled: compounded annually, or paid out (simple) each year or each month.";
+  }
+
+  var g=gic(P,rate,start,maturity,mode);
+
+  document.getElementById("matDate").textContent=fdate(maturity);
+  document.getElementById("termDays").textContent=termDays.toLocaleString("en-CA")+" days";
+  document.getElementById("total").textContent=money(g.totalValue);
+  document.getElementById("interest").textContent=money(g.totalInterest);
+  document.getElementById("balance").textContent=money(g.maturityBalance);
+  document.getElementById("balLbl").textContent = g.paidOut ? "Principal returned" : "Balance at maturity";
+  var apy = P>0 ? (Math.pow(g.totalValue/P,365/termDays)-1)*100 : 0;
+  document.getElementById("apy").textContent=apy.toFixed(2)+"%";
+
+  var methodTxt = mode==="simple_maturity"?"Simple · at maturity"
+    : mode==="compound_annual"?"Compounded annually"
+    : mode==="paid_annual"?"Simple · paid annually" : "Simple · paid monthly";
+  document.getElementById("method").textContent=methodTxt;
+
+  var unitLbl = unit==="days"?(n+" days"):unit==="months"?(n+" month"+(n>1?"s":"")):(n+" year"+(n>1?"s":""));
+  document.getElementById("summary").innerHTML =
+    "Invest <b>"+money(P)+"</b> at <b>"+rate.toFixed(2)+"%</b> for <b>"+unitLbl+"</b> (matures "+fdate(maturity)+
+    ") → earns <b>"+money(g.totalInterest)+"</b>. "+
+    (g.paidOut ? "Interest is paid out "+(mode==="paid_monthly"?"monthly":"annually")+"; principal of <b>"+money(P)+"</b> is returned at maturity."
+               : "Total value at maturity: <b>"+money(g.totalValue)+"</b>.");
+
+  // schedule
+  document.getElementById("schedTitle").textContent =
+    mode==="simple_maturity"?"Payout at maturity" : mode==="paid_monthly"?"Monthly interest payments" :
+    mode==="compound_annual"?"Yearly compounding" : "Yearly interest payments";
+  var paid = g.paidOut;
+  var h="<thead><tr><th>"+(mode==='simple_maturity'?'Event':'Period')+"</th><th>Date</th><th>Days</th><th>Interest</th>"+
+        (paid?"<th>Cumulative</th>":"")+"<th>"+(paid?'Principal':'Balance')+"</th></tr></thead><tbody>";
+  g.rows.forEach(function(rw){
+    h+="<tr><td>"+rw.label+"</td><td>"+fdate(rw.date)+"</td><td>"+rw.days+"</td><td>"+money(rw.interest)+"</td>"+
+       (paid?"<td>"+money(rw.cum)+"</td>":"")+"<td>"+money(rw.balance)+"</td></tr>";
+  });
+  h+="</tbody>";
+  document.getElementById("tbl").innerHTML=h;
+  document.getElementById("schedCap").textContent = paid
+    ? "Interest is paid out to the customer each period (it does not compound). The principal is returned at maturity."
+    : (mode==="compound_annual" ? "Each year's interest is added to the balance and earns interest the following year."
+        : "Simple interest accrues over the full term and is paid with the principal at maturity.");
+}
+render();
+</script>
+</body>
+</html>
